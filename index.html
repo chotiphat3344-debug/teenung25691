@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="th" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจองที่นั่ง ม.3/7 - โรงเรียนกัลยาณีศรีธรรมราช</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Sarabun', sans-serif; }
+    .seat-btn {
+      transition: all 0.2s ease;
+    }
+    .seat-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gray-50">
+  <!-- Navigation Header -->
+  <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+   <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center">
+     <div class="flex items-center gap-2">
+      <span class="text-2xl">🏫</span>
+      <div>
+       <h1 class="text-lg font-bold text-blue-600">โรงเรียนกัลยาณีศรีธรรมราช</h1>
+       <p class="text-xs text-gray-500">ระบบจองที่นั่งห้อง ม.3/7 | ปีการศึกษา 2569</p>
+      </div>
+     </div><button id="logout-nav-btn" class="hidden bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"> ออกจากระบบ </button>
+    </div>
+   </div>
+  </nav>
+  <div id="app" class="h-full w-full overflow-auto"><!-- หน้า Login -->
+   <div id="login-page" class="min-h-full flex items-center justify-center p-4 py-12">
+    <div class="w-full max-w-2xl">
+     <!-- Hero Section -->
+     <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-8 rounded-t-2xl text-center mb-0">
+      <div class="text-6xl mb-4">
+       🏫
+      </div>
+      <h1 class="text-3xl font-bold mb-2">ระบบจองที่นั่ง</h1>
+      <p class="text-blue-100 text-lg mb-2">โรงเรียนกัลยาณีศรีธรรมราช</p>
+      <p class="text-blue-200">ห้อง ม.3/7 ปีการศึกษา 2569</p>
+     </div><!-- Login Form -->
+     <div class="bg-white border border-t-0 border-gray-200 p-8 rounded-b-2xl shadow-lg">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">ยินดีต้อนรับ</h2>
+      <p class="text-gray-600 text-center mb-6">กรุณากรอกข้อมูลของคุณเพื่อเข้าสู่ระบบ</p>
+      <div class="space-y-4">
+       <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">เลขบัตรประชาชน</label> <input type="text" id="national-id" maxlength="13" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-wider" placeholder="กรอกเลข 13 หลัก">
+        <p class="text-xs text-gray-500 mt-1">ตัวอย่าง: 1234567890123</p>
+       </div>
+       <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">เลขประจำตัวนักเรียน</label> <input type="text" id="student-id" maxlength="10" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-wider" placeholder="กรอกเลขประจำตัว">
+        <p class="text-xs text-gray-500 mt-1">ตัวอย่าง: 12345</p>
+       </div>
+       <div id="login-error" class="hidden text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200"></div><button id="login-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all hover:shadow-lg mt-6"> เข้าสู่ระบบ </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- หน้าจองที่นั่ง -->
+   <div id="booking-page" class="hidden min-h-full p-4">
+    <div class="max-w-6xl mx-auto"><!-- Main Content -->
+     <div class="mb-6">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">📋 ระบบจองที่นั่ง</h2>
+      <p class="text-gray-600">เลือกที่นั่งที่ต้องการจอง และกรอกเลขที่ของคุณ</p>
+     </div><!-- Alert Section -->
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <!-- Status Cards -->
+      <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+       <p class="text-gray-600 text-sm mb-1">จองแล้ว</p>
+       <p id="booked-count" class="text-3xl font-bold text-blue-600">0</p>
+       <p class="text-xs text-gray-400">ที่นั่ง</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+       <p class="text-gray-600 text-sm mb-1">ว่าง</p>
+       <p id="available-count" class="text-3xl font-bold text-green-600">41</p>
+       <p class="text-xs text-gray-400">ที่นั่ง</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+       <p class="text-gray-600 text-sm mb-1">รวมทั้งหมด</p>
+       <p class="text-3xl font-bold text-gray-700">41</p>
+       <p class="text-xs text-gray-400">ที่นั่ง</p>
+      </div>
+     </div><!-- Seating Area -->
+     <div class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm mb-6">
+      <!-- Legend -->
+      <div class="flex flex-wrap gap-4 mb-6 pb-4 border-b border-gray-200 justify-center">
+       <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-white border-2 border-gray-300 rounded"></div><span class="text-sm text-gray-600">ว่าง</span>
+       </div>
+       <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-blue-500 rounded"></div><span class="text-sm text-gray-600">จองแล้ว (แถว A)</span>
+       </div>
+       <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-sky-500 rounded"></div><span class="text-sm text-gray-600">จองแล้ว (แถว B)</span>
+       </div>
+       <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-cyan-500 rounded"></div><span class="text-sm text-gray-600">จองแล้ว (แถว C)</span>
+       </div>
+      </div><!-- Front of classroom indicator -->
+      <div class="text-center mb-6 text-gray-500 font-semibold text-sm">
+       📖 หน้าชั้นเรียน
+      </div><!-- Row A -->
+      <div class="mb-6">
+       <div class="flex items-center gap-3 mb-3">
+        <span class="bg-blue-500 text-white px-4 py-1 rounded font-semibold text-sm w-16">แถว A</span> <span class="text-gray-600 text-sm">(15 ที่นั่ง)</span>
+       </div>
+       <div id="row-a" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-15 gap-2">
+       </div>
+      </div><!-- Row B -->
+      <div class="mb-6">
+       <div class="flex items-center gap-3 mb-3">
+        <span class="bg-sky-500 text-white px-4 py-1 rounded font-semibold text-sm w-16">แถว B</span> <span class="text-gray-600 text-sm">(15 ที่นั่ง)</span>
+       </div>
+       <div id="row-b" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-15 gap-2">
+       </div>
+      </div><!-- Row C -->
+      <div class="mb-6">
+       <div class="flex items-center gap-3 mb-3">
+        <span class="bg-cyan-500 text-white px-4 py-1 rounded font-semibold text-sm w-16">แถว C</span> <span class="text-gray-600 text-sm">(11 ที่นั่ง)</span>
+       </div>
+       <div id="row-c" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-11 gap-2">
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- หน้ายืนยัน -->
+   <div id="confirm-page" class="hidden min-h-full flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+     <div class="bg-blue-600 text-white p-6 rounded-t-xl text-center">
+      <div class="text-4xl mb-2">
+       ✅
+      </div>
+      <h1 class="text-xl font-bold">ยืนยันการจองสำเร็จ</h1>
+     </div>
+     <div class="bg-gray-50 border border-t-0 border-gray-200 p-6 rounded-b-xl">
+      <div class="space-y-4">
+       <div class="bg-white p-4 rounded-lg border border-gray-200">
+        <table class="w-full text-sm">
+         <tbody>
+          <tr>
+           <td class="py-2 text-gray-500">ชื่อ-นามสกุล:</td>
+           <td id="confirm-name" class="py-2 font-medium text-right">-</td>
+          </tr>
+          <tr>
+           <td class="py-2 text-gray-500">เลขบัตรประชาชน:</td>
+           <td id="confirm-national-id" class="py-2 font-medium text-right">-</td>
+          </tr>
+          <tr>
+           <td class="py-2 text-gray-500">เลขประจำตัว:</td>
+           <td id="confirm-student-id" class="py-2 font-medium text-right">-</td>
+          </tr>
+          <tr>
+           <td class="py-2 text-gray-500">ที่นั่ง:</td>
+           <td id="confirm-seat" class="py-2 font-bold text-blue-600 text-right text-lg">-</td>
+          </tr>
+          <tr>
+           <td class="py-2 text-gray-500">วันที่จอง:</td>
+           <td id="confirm-date" class="py-2 font-medium text-right">-</td>
+          </tr>
+         </tbody>
+        </table>
+       </div><button id="back-to-booking" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"> กลับหน้าหลัก </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Modal จองที่นั่ง -->
+   <div id="booking-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl w-full max-w-sm">
+     <div class="bg-blue-600 text-white p-4 rounded-t-xl">
+      <h3 id="modal-title" class="font-bold text-center">จองที่นั่ง</h3>
+     </div>
+     <div class="p-4">
+      <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">เลขที่ (ชื่อผู้จอง)</label> <input type="text" id="student-number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center" placeholder="กรอกเลขที่ของคุณ">
+      </div>
+      <div id="modal-error" class="hidden text-red-600 text-sm text-center bg-red-50 p-2 rounded mb-4"></div>
+      <div class="flex gap-2"><button id="cancel-booking" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300"> ยกเลิก </button> <button id="confirm-booking" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700"> ยืนยันจอง </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Modal เปลี่ยนที่นั่ง -->
+   <div id="change-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl w-full max-w-sm">
+     <div class="bg-orange-500 text-white p-4 rounded-t-xl">
+      <h3 id="change-modal-title" class="font-bold text-center">เปลี่ยนที่นั่ง</h3>
+     </div>
+     <div class="p-4">
+      <p id="change-seat-info" class="text-center text-gray-600 mb-4"></p>
+      <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">ยืนยันเลขบัตรประชาชน</label> <input type="text" id="verify-national-id" maxlength="13" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-center tracking-wider" placeholder="กรอกเลข 13 หลัก">
+      </div>
+      <div id="change-error" class="hidden text-red-600 text-sm text-center bg-red-50 p-2 rounded mb-4"></div>
+      <div class="flex gap-2"><button id="cancel-change" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300"> ยกเลิก </button> <button id="confirm-change" class="flex-1 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600"> ยกเลิกการจอง </button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Footer -->
+  <footer class="bg-gray-900 text-gray-300 border-t border-gray-800 mt-12">
+   <div class="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8"><!-- About Section -->
+     <div>
+      <h3 class="text-white font-bold text-lg mb-3 flex items-center gap-2"><span>🏫</span> โรงเรียนกัลยาณีศรีธรรมราช</h3>
+      <p class="text-sm text-gray-400 leading-relaxed">ระบบจองที่นั่งออนไลน์สำหรับห้องเรียนม.3/7 ปีการศึกษา 2569 เพื่อความสะดวกในการจัดการห้องเรียน</p>
+     </div><!-- Features Section -->
+     <div>
+      <h4 class="text-white font-bold text-lg mb-3">✨ ฟีเจอร์หลัก</h4>
+      <ul class="space-y-2 text-sm text-gray-400">
+       <li class="flex items-center gap-2"><span class="text-blue-500">✓</span> ระบบล็อกอินปลอดภัย</li>
+       <li class="flex items-center gap-2"><span class="text-blue-500">✓</span> จองที่นั่งออนไลน์</li>
+       <li class="flex items-center gap-2"><span class="text-blue-500">✓</span> ติดตามสถานะการจอง</li>
+       <li class="flex items-center gap-2"><span class="text-blue-500">✓</span> เปลี่ยนที่นั่งได้ทันที</li>
+      </ul>
+     </div><!-- Support Section -->
+     <div>
+      <h4 class="text-white font-bold text-lg mb-3">📞 ติดต่อเรา</h4>
+      <div class="space-y-3 text-sm text-gray-400">
+       <p class="flex items-center gap-2"><span>📧</span> <span>kn.41581@kalayanee.ac.th</span></p>
+       <p class="flex items-center gap-2"><span>📞</span> <span>0993503976</span></p>
+       <p class="flex items-center gap-2"><span>📍</span> <span>จังหวัดนครศรีธรรมราช</span></p>
+      </div>
+     </div>
+    </div><!-- Divider -->
+    <div class="border-t border-gray-800 pt-8"><!-- Stats -->
+     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-gray-800 p-4 rounded-lg text-center">
+       <p class="text-2xl font-bold text-blue-400" id="footer-booked">0</p>
+       <p class="text-xs text-gray-400 mt-1">ที่นั่งจองแล้ว</p>
+      </div>
+      <div class="bg-gray-800 p-4 rounded-lg text-center">
+       <p class="text-2xl font-bold text-green-400" id="footer-available">41</p>
+       <p class="text-xs text-gray-400 mt-1">ที่นั่งว่าง</p>
+      </div>
+      <div class="bg-gray-800 p-4 rounded-lg text-center">
+       <p class="text-2xl font-bold text-gray-300">41</p>
+       <p class="text-xs text-gray-400 mt-1">ที่นั่งรวม</p>
+      </div>
+      <div class="bg-gray-800 p-4 rounded-lg text-center">
+       <p class="text-2xl font-bold text-purple-400" id="footer-percentage">0%</p>
+       <p class="text-xs text-gray-400 mt-1">สดส่วนจอง</p>
+      </div>
+     </div><!-- Bottom Footer -->
+     <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-800">
+      <p class="text-sm text-gray-500 text-center md:text-left">© 2569 โรงเรียนกัลยาณีศรีธรรมราช | ระบบจองที่นั่งห้อง ม.3/7</p>
+      <div class="flex gap-4 mt-4 md:mt-0"><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">นโยบายความเป็นส่วนตัว</a> <span class="text-gray-600">|</span> <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">ข้อกำหนดการใช้บริการ</a> <span class="text-gray-600">|</span> <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">ติดต่อสอบถาม</a>
+      </div>
+     </div>
+    </div>
+   </div>
+  </footer>
+  <script>
+    // App state
+    let currentUser = null;
+    let allBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+    let selectedSeat = null;
+    let selectedBooking = null;
+
+    const TOTAL_SEATS = 41;
+    const ROWS = {
+      A: { count: 15, color: 'bg-blue-500', borderColor: 'border-blue-500' },
+      B: { count: 15, color: 'bg-sky-500', borderColor: 'border-sky-500' },
+      C: { count: 11, color: 'bg-cyan-500', borderColor: 'border-cyan-500' }
+    };
+
+    // Save bookings to localStorage
+    function saveBookings() {
+      localStorage.setItem('bookings', JSON.stringify(allBookings));
+    }
+
+    // Initialize app
+    function initApp() {
+      generateSeats();
+      setupEventListeners();
+      renderSeats();
+      updateSummary();
+    }
+
+    function generateSeats() {
+      Object.entries(ROWS).forEach(([row, info]) => {
+        const container = document.getElementById(`row-${row.toLowerCase()}`);
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= info.count; i++) {
+          const seatId = `${row}${i}`;
+          const btn = document.createElement('button');
+          btn.id = `seat-${seatId}`;
+          btn.className = `seat-btn w-full aspect-square border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center text-xs font-medium bg-white hover:bg-gray-50`;
+          btn.innerHTML = `<span class="text-gray-400 text-xs">${row}${i}</span><span class="student-num text-xs"></span>`;
+          btn.dataset.seatId = seatId;
+          btn.dataset.row = row;
+          btn.dataset.seatNumber = i;
+          container.appendChild(btn);
+        }
+      });
+    }
+
+    function renderSeats() {
+      // Reset all seats
+      document.querySelectorAll('.seat-btn').forEach(btn => {
+        btn.className = `seat-btn w-full aspect-square border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center text-xs font-medium bg-white hover:bg-gray-50`;
+        btn.querySelector('.student-num').textContent = '';
+      });
+
+      // Mark booked seats
+      allBookings.forEach(booking => {
+        const btn = document.getElementById(`seat-${booking.seat_id}`);
+        if (btn) {
+          const rowInfo = ROWS[booking.row];
+          btn.className = `seat-btn w-full aspect-square border-2 ${rowInfo.borderColor} rounded-lg flex flex-col items-center justify-center text-xs font-medium ${rowInfo.color} text-white cursor-pointer`;
+          btn.querySelector('.student-num').textContent = `เลขที่ ${booking.student_number}`;
+        }
+      });
+    }
+
+    function updateSummary() {
+      const booked = allBookings.length;
+      const available = TOTAL_SEATS - booked;
+      const percentage = Math.round((booked / TOTAL_SEATS) * 100);
+      document.getElementById('booked-count').textContent = booked;
+      document.getElementById('available-count').textContent = available;
+      document.getElementById('footer-booked').textContent = booked;
+      document.getElementById('footer-available').textContent = available;
+      document.getElementById('footer-percentage').textContent = percentage + '%';
+    }
+
+    function setupEventListeners() {
+      // Login button
+      document.getElementById('login-btn').addEventListener('click', handleLogin);
+
+      // Logout buttons
+      document.getElementById('logout-nav-btn').addEventListener('click', handleLogout);
+
+      // Seat buttons
+      document.querySelectorAll('.seat-btn').forEach(btn => {
+        btn.addEventListener('click', handleSeatClick);
+      });
+
+      // Booking modal
+      document.getElementById('cancel-booking').addEventListener('click', () => {
+        document.getElementById('booking-modal').classList.add('hidden');
+      });
+      document.getElementById('confirm-booking').addEventListener('click', handleConfirmBooking);
+
+      // Change modal
+      document.getElementById('cancel-change').addEventListener('click', () => {
+        document.getElementById('change-modal').classList.add('hidden');
+      });
+      document.getElementById('confirm-change').addEventListener('click', handleConfirmChange);
+
+      // Back to booking
+      document.getElementById('back-to-booking').addEventListener('click', () => {
+        showPage('booking');
+      });
+
+      // Enter key handlers
+      document.getElementById('national-id').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('student-id').focus();
+      });
+      document.getElementById('student-id').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+      document.getElementById('student-number').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleConfirmBooking();
+      });
+      document.getElementById('verify-national-id').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleConfirmChange();
+      });
+    }
+
+    function handleLogin() {
+      const nationalId = document.getElementById('national-id').value.trim();
+      const studentId = document.getElementById('student-id').value.trim();
+      const errorEl = document.getElementById('login-error');
+
+      if (!nationalId || nationalId.length !== 13) {
+        errorEl.textContent = 'กรุณากรอกเลขบัตรประชาชน 13 หลัก';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      if (!studentId) {
+        errorEl.textContent = 'กรุณากรอกเลขประจำตัวนักเรียน';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      currentUser = { nationalId, studentId };
+      errorEl.classList.add('hidden');
+      document.getElementById('logout-nav-btn').classList.remove('hidden');
+      showPage('booking');
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('national-id').value = '';
+      document.getElementById('student-id').value = '';
+      document.getElementById('logout-nav-btn').classList.add('hidden');
+      showPage('login');
+    }
+
+    function handleSeatClick(e) {
+      const btn = e.currentTarget;
+      const seatId = btn.dataset.seatId;
+      const row = btn.dataset.row;
+      const seatNumber = parseInt(btn.dataset.seatNumber);
+
+      const existingBooking = allBookings.find(b => b.seat_id === seatId);
+
+      if (existingBooking) {
+        selectedBooking = existingBooking;
+        document.getElementById('change-modal-title').textContent = `ที่นั่ง ${seatId}`;
+        document.getElementById('change-seat-info').textContent = `จองโดย: เลขที่ ${existingBooking.student_number}`;
+        document.getElementById('verify-national-id').value = '';
+        document.getElementById('change-error').classList.add('hidden');
+        document.getElementById('change-modal').classList.remove('hidden');
+      } else {
+        selectedSeat = { seatId, row, seatNumber };
+        document.getElementById('modal-title').textContent = `จองที่นั่ง ${seatId}`;
+        document.getElementById('student-number').value = '';
+        document.getElementById('modal-error').classList.add('hidden');
+        document.getElementById('booking-modal').classList.remove('hidden');
+      }
+    }
+
+    function handleConfirmBooking() {
+      const studentNumber = document.getElementById('student-number').value.trim();
+      const errorEl = document.getElementById('modal-error');
+
+      if (!studentNumber) {
+        errorEl.textContent = 'กรุณากรอกเลขที่ของคุณ';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      const bookingData = {
+        seat_id: selectedSeat.seatId,
+        row: selectedSeat.row,
+        seat_number: selectedSeat.seatNumber,
+        student_number: studentNumber,
+        national_id: currentUser.nationalId,
+        student_id: currentUser.studentId,
+        booked_at: new Date().toLocaleString('th-TH')
+      };
+
+      allBookings.push(bookingData);
+      saveBookings();
+      renderSeats();
+      updateSummary();
+
+      document.getElementById('booking-modal').classList.add('hidden');
+      showConfirmation(bookingData);
+    }
+
+    function handleConfirmChange() {
+      const verifyId = document.getElementById('verify-national-id').value.trim();
+      const errorEl = document.getElementById('change-error');
+
+      if (!verifyId) {
+        errorEl.textContent = 'กรุณากรอกเลขบัตรประชาชน';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      if (verifyId !== selectedBooking.national_id) {
+        errorEl.textContent = 'ไม่สามารถเปลี่ยนที่นั่งได้ เนื่องจากเลขบัตรประชาชนไม่ตรง';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      allBookings = allBookings.filter(b => b.seat_id !== selectedBooking.seat_id);
+      saveBookings();
+      renderSeats();
+      updateSummary();
+
+      document.getElementById('change-modal').classList.add('hidden');
+      selectedBooking = null;
+    }
+
+    function showConfirmation(booking) {
+      document.getElementById('confirm-name').textContent = booking.student_number;
+      document.getElementById('confirm-national-id').textContent = maskNationalId(booking.national_id);
+      document.getElementById('confirm-student-id').textContent = booking.student_id;
+      document.getElementById('confirm-seat').textContent = booking.seat_id;
+      document.getElementById('confirm-date').textContent = booking.booked_at;
+      showPage('confirm');
+    }
+
+    function maskNationalId(id) {
+      return id.substring(0, 4) + 'XXXXX' + id.substring(9);
+    }
+
+    function showPage(page) {
+      document.getElementById('login-page').classList.add('hidden');
+      document.getElementById('booking-page').classList.add('hidden');
+      document.getElementById('confirm-page').classList.add('hidden');
+
+      if (page === 'login') {
+        document.getElementById('login-page').classList.remove('hidden');
+      } else if (page === 'booking') {
+        document.getElementById('booking-page').classList.remove('hidden');
+      } else if (page === 'confirm') {
+        document.getElementById('confirm-page').classList.remove('hidden');
+      }
+    }
+
+    // Start the app
+    initApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d2629ed053c7329',t:'MTc3MTg0Mzg0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
